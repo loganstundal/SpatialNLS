@@ -1,0 +1,195 @@
+---
+title: "Spatial and Spatiotemporal models with NLS"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Spatial and Spatiotemporal models with NLS}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+author: "Logan Stundal"
+package: SpatialNLS
+abstract: >
+  Political scientists increasingly engage with spatial data in our analysis of political phenomena. This is a great indication of the progress in the discipline - as political scientists gain access to more accurate, highly precise measures of political variables that include indicators on spatial information we are able to make new inroads into understanding problems that were once out of reach. This progress brings with it advances in our theorization. Rather than simply treating space as a nuisance we now work much more to incorporate it directly into our theoretical models. These more sophisticated theories have generated intense methodological research on ways to incorporate the theoretically implied dynamics of space into our statistical models which seek to measure processes. However, this development of sophisticated modeling techniques along with the aforementioned expansion of spatial data access has given rise to a new problem - computation. These new models of space present extensive computational challenges. Often the technical difficulties of estimation serve as a new impediment to theoretical progress. Solutions typically seek to address the computational challenges of space through complexity - that is, the proposed solutions typically are more advanced statistical methods. For example INLA or Singranelli and XYZ on their probit estimator [See also xyz for more on this.]. While these state-of-the-art developments in the domain of spatial modeling offer exciting new avenues for future research they also present an impediment for future theoretical progress in our discipline as they exclude large swathes of researchers who lack the technical expertise to engage with and successfully deploy these models. Worse, finding that existing methods provide no feasible solutions to a technical estimation problem, some researchers may turn to these more sophisticated techniques without a full appreciation of the particular features of the models required for successful theory testing. In order to address this problem in this paper I instead offer an alternative solution for applied researchers seeking to model the spatial dynamics of their newly acquired large-n spatially explicit data sets: Spatial Lag and Spatial Error regression estimated via non-linear least squares. In contrast to more complex techniques such as Bayesian models estimated via MCMC or INLA, or optimization routines that struggle to successfully converge when confronted with complicated likelihoods inherent to dynamic spatial processes, nonlinear least squares (NLS) offers a number of attractive features including familiarity for many researchers already trained in ordinary least squares and speed - NLS can provide estimates for complex spatial models in a fraction of the time of comparable models estimated via maximum likelihood or Bayesian techniques. In the remainder of this paper I will introduce the NLS Spatial Lag and Spatial Error model as well as explain the purpose and areas for research applications. Following this I will discuss the performance of these NLS models compared to a number of more complex competitors. Finally, I will review a new software package available now in R, Python, and Stata for researchers to use in their applied spatial studies. Following this presentation of the automated commands from the software, the paper explores extensions of the sptial lag model germane to the study of poltiical process that incorporate dynamics implied by our theories more directly into our statistical models.
+
+---
+`<style>body{text-align: justify}</style>`{=html}
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = FALSE,
+  cache = TRUE,
+  fig.width  = 6.5,
+  fig.height = 5.5,
+  warning = FALSE
+)
+```
+
+```{r setup, message=FALSE,warning=FALSE}
+# library(SpatialNLS)
+set.seed(123)
+require(dplyr)
+require(stringr)
+require(ggplot2)
+require(microbenchmark)
+require(kableExtra)
+require(broom)
+require(spatialreg)
+require(SpatialNLS)
+```
+
+# Motivation:
+
+Increased complexity isn't always better; NLS offers advantages for spatial and spatiotemporal modeling progress, particularly due to its speed relative to MLE and Bayesian approaches which has important implications for those attempting to integrate spatial models into production or analysis pipelines, especially in the domain of real-time forecasting applications.
+
+# Theoretical Background
+* Deriving the spatial NLS estimator
+
+# Bias Evaluation
+The figure below compares results from NLS estimates against estimates from a model estimated via maximum likelihood with `lagsarlm` from `spatialreg`. For comparability, the figure also includes true parameter values used to generate the simulated data with a spatial lag process. 
+```{r, cache=TRUE, echo=FALSE}
+
+x = spacetime_sim(e_sd = 1)
+glimpse(x$data)
+
+form = y ~ x1 + x2
+
+# ----------------------------------- #
+m.nls = lagsarnls(formula = form, 
+                  data    = x$data,
+                  W       = x$W_matrix)
+# summary(m.nls)
+
+res.nls = tidy(m.nls)
+cis.nls = confint(m.nls) %>% as_tibble()
+
+res.nls = bind_cols(res.nls,cis.nls) %>%
+  rename(lb = 6,
+         ub = 7) %>%
+  mutate(term = factor(str_remove_all(term, pattern = "b_|[()]"), 
+                       levels = c("Intercept","x1","x2","rho"))) %>%
+  arrange(term)
+res.nls$truth = with(x$sim_params, c(betas, rho))
+# ----------------------------------- #
+
+
+# ----------------------------------- #
+m.spr = lagsarlm(formula = form, 
+                 data    = x$data,
+                 listw   = x$W_list)
+
+# summary(m.spr)
+
+res.spr = tidy(m.spr)
+cis.spr = confint(m.spr) %>% as_tibble()
+
+res.spr = bind_cols(res.spr,cis.spr) %>%
+  rename(lb = 6,
+         ub = 7) %>%
+  mutate(term = factor(str_remove_all(term, pattern = "b_|[()]"), 
+                       levels = c("Intercept","x1","x2","rho"))) %>%
+  arrange(term)
+res.spr$truth = with(x$sim_params, c(betas, rho))
+# ----------------------------------- #
+
+
+# ----------------------------------- #
+res = bind_rows(
+  res.nls %>% select(term, estimate, lb, ub, truth) %>% 
+    mutate(model = "NLS"),
+  res.spr %>% select(term, estimate, lb, ub, truth) %>% 
+    mutate(model = "SPR")
+) %>%
+  mutate(term = paste(term, model, sep = ".")) %>%
+  arrange(term) %>%
+  mutate(y = sort(rowSums(expand.grid(1:4, c(.25,.5)))))
+# ----------------------------------- #
+
+
+ggplot(res, aes(y = y)) +
+  geom_errorbar(aes(xmin = lb,
+                    xmax = ub),
+                width = .1) +
+  geom_point(aes(x = estimate, color = model),   size = 2.5, alpha = 0.6) +
+  geom_point(aes(x = truth,    color = "Truth"), size = 2.5, alpha = 0.6) +
+  geom_vline(aes(xintercept = 0), linetype = "dotted", color = "gray60", size = 0.5) + 
+  theme_bw() + 
+  scale_y_continuous(breaks = res$y,
+                     labels = res$term) + 
+  labs(title = "Simulated model results vs true values",
+       subtitle = bquote(sigma == .(x$sigma)),
+       x        = "Point estimate") + 
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.position  = "bottom",
+        legend.direction = "horizontal",
+        axis.title.y = element_blank()) +
+  scale_color_discrete(name = "")
+```
+
+
+# Performance Evaluation
+While the bias evaluation indicates the models perform equally well in detecting both the relationship between key independent variables as well as extracting the degree of spatial dependence inherent in the data, it is in regards to computation time where the NLS estimator performs best. The plot below presents the distribution of estimation times for 100 models each of my `lagsarnls` and spatialregs `lagsarlm` models on the same underlying data. Estimating this spatial model using the NLS approximation produces significant performance gains. 
+
+```{r}
+
+mbm_sml <- microbenchmark("SpatialReg" = {lagsarlm( formula = form, data = x$data, listw=x$W_list, quiet=T)},
+                          "SpatialNLS" = {lagsarnls(formula = form, data = x$data, W = x$W_matrix)})
+
+# mbm_big <- microbenchmark("SpatialReg" = {lagsarlm( formula = form, data = x$data, listw=x$W_list, quiet=T)},
+#                           "SpatialNLS" = {lagsarnls(formula = form, data = x$data, W = x$W_matrix)})
+
+
+# ----------------------------------- #
+# Plot timing data
+# ----------------------------------- #
+
+plt_sml <- suppressMessages({autoplot(mbm_sml)}) + theme_minimal() + 
+  labs(title = "Timing comparision between spatial lag models")
+# plt_big <- autoplot(mbm_big) + theme_minimal()
+
+# plot_grid(plt_sml, plt_big, nrow = 2)
+
+# plt_dat <- bind_rows(as.data.frame(plt_sml$data) %>% mutate(Group = "Small-n = 100"),
+#                      as.data.frame(plt_big$data) %>% mutate(Group = "Large-n = 800")) %>%
+#   mutate(time = time / 1e6) # Convert nanoseconds (?) to milliseconds [latter validated with plots]
+# 
+# 
+# ggplot(data = plt_dat, aes(x = time, y = expr)) +
+#   geom_violin(aes(fill = expr)) +
+#   facet_wrap(vars(Group), nrow = 2) +
+#   scale_fill_discrete("Function") +
+#   theme_minimal() +
+#   theme(panel.grid.major.y = element_blank())
+
+plt_sml
+
+# "This performance plot is a pretty important observation here - these models offer a
+#  tractable solution to estimating complex dynanmic spatial models. This solution also
+#  scales well as the data grow. "
+
+# ----------------------------------- #
+# Performance measure quantified
+# ----------------------------------- #
+mbm_sml_res <- as.data.frame(summary(mbm_sml))[,c("expr","min","mean","max")]
+# mbm_big <- as.data.frame(summary(mbm_big))[,c("min","mean","max")]
+
+mbm_sml_res <- bind_rows(mbm_sml_res,
+                         cbind("expr" = "NLS performance multiplier", mbm_sml_res[1,2:4] / mbm_sml_res[2,2:4]))
+# mbm_big[1, ] / mbm_big[2,]
+
+# "On average, my Spatial-NLS function is between 30 to 70 times faster than
+#  lagsarlm when estimating these on the small data and 12 to 16 times faster
+#  on a large-n dataset."
+
+kbl(mbm_sml_res, digits = 2) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = TRUE)
+```
+
+Clearly NLS offers advantages here in terms of speed without sacrificing accuracy as indicated by the low bias in the parameter estimates.
+
+
+# To dos
+  * Could also offer a heteroskedasticity fix. Spatial models have heteroskedasticity but it is NEVER EVER addressed in the literature.
+

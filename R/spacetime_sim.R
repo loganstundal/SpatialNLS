@@ -139,7 +139,8 @@ spacetime_sim <- function(sample_size   = 100,
                                "nbr_connections_sim" = prob_connect_actual,
                                "sample_size"         = sample_size),
            "W_matrix" = W,
-           "W_list"   = nbl)
+           "W_list"   = nbl,
+           "sigma"    = e_sd)
 
   return(d)
 }

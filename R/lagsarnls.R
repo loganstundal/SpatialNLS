@@ -1,38 +1,27 @@
-#' Estimate spatial lag models using non-linear least squares
+#' Spatial lag models using non-linear least squares
 #'
+#' @description This function provides functionality for spatial lag models
+#'   estimated at high speed using nonlinear least squares.
 #'
-
-#-----------------------------------------------------------------------------#
-#
-# Author:        Logan Stundal
-# Date:          February 02, 2021
-# Purpose:       Function to estimate a spatial lag model via NLS
-#
-#
-# Copyright (c): Logan Stundal, 2021
-# Email:         stund005@umn.edu
-#
-#-----------------------------------------------------------------------------#
-#
-# "To do list:
-#   1. sp_sim - add panel data functionality. Include setting temporal lag
-#               and temporal length as well as cross-section size options."
-#-----------------------------------------------------------------------------#
-
-
-sp_lag <- function(lags,W, y, X){
-  l<-lapply(1:lags, function(x){
-    as.numeric(W^x %*% y)
-  })
-  l <- do.call(cbind, lapply(l, as.data.frame))
-  colnames(l) <- paste("SpLag",1:lags, sep ="")
-
-  return(cbind(X,l))
-}
-
-# w_subset = function(W, X){
-#   # to do
-# }
+#' @param formula    model formula
+#' @param W          spatial weights matrix
+#' @param data       data
+#' @param subset_W   not implemented
+#' @param lags       spatial lags to approximate
+#' @param intercept  boolean - to include intercept
+#' @param start_vals starting values for nls optimizer. if null uses ols estimates
+#' @param rho_start  starting values for rho
+#' @param rho_bounds lower and upper bounds for rho (not necessary)
+#'
+#' @return returns a nls model object
+#' @export
+#'
+#' @examples
+#' x = spacetime_sim()
+#' m = lagsarnls(formula = y ~ x1 + x2,
+#'               data    = x$data,
+#'               W       = x$W_matrix)
+#'
 
 lagsarnls <- function(formula    = NULL,
                       W          = NULL,
@@ -43,6 +32,25 @@ lagsarnls <- function(formula    = NULL,
                       start_vals = NULL,
                       rho_start  = 0.2,
                       rho_bounds = NULL){
+
+
+  # ----------------------------------- #
+  # Helper functions
+
+  sp_lag <- function(lags,W, y, X){
+    l<-lapply(1:lags, function(x){
+      as.numeric(W^x %*% y)
+    })
+    l <- do.call(cbind, lapply(l, as.data.frame))
+    colnames(l) <- paste("SpLag",1:lags, sep ="")
+
+    return(cbind(X,l))
+  }
+
+  # w_subset = function(W, X){
+  #   # to do
+  # }
+  # ----------------------------------- #
 
   # ----------------------------------- #
   # Initial setup based on code above

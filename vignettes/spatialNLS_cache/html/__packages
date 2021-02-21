@@ -1,0 +1,11 @@
+base
+kableExtra
+broom
+spData
+Matrix
+spatialreg
+SpatialNLS
+dplyr
+stringr
+ggplot2
+microbenchmark
