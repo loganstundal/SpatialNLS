@@ -1,20 +1,39 @@
-#' Simulate spatial data
+#' Simulate spatial or spatiotemporal data
 #'
+#' @description spacetime_sim - easy simulation of spatial or spatiotemporal data.
 #'
+#' @param sample_size   sample size
+#' @param k             number of vars
+#' @param b_true        true beta values
+#' @param rho_true      true rho (spatial) correlation
+#' @param phi_true      true phi (temporal) correlation (not working)
+#' @param prob_connect  density of connections in W
+#' @param e_sd          noise in the dgp
+#' @param probit        boolean simulate binary outcome data
+#' @param temporal      boolean simulate temporal data
+#' @param groups        number of groups if temporal is true
+#' @param time_periods  number of time periods if temporal is true
 #'
+#' @returns A list consisting of 4 elements: data as a tibble, simulated
+#'   parameters (user set and observed values), w, w as a list object
+#'
+#' @importFrom dplyr as_tibble
+#' @importFrom spdep mat2listw listw2mat
+#'
+#' @export
 
 
-sp_sim <- function(sample_size   = 100,
-                   k             = 2,
-                   b_true        = c(1, 2.5, -1),
-                   rho_true      = 0.6,
-                   phi_true      = 0.3,
-                   prob_connect  = 0.3,
-                   e_sd          = 0.2,
-                   probit        = FALSE,
-                   temporal      = FALSE,
-                   groups        = NULL,
-                   time_periods  = NULL){
+spacetime_sim <- function(sample_size   = 100,
+                          k             = 2,
+                          b_true        = c(1, 2.5, -1),
+                          rho_true      = 0.6,
+                          phi_true      = 0.3,
+                          prob_connect  = 0.3,
+                          e_sd          = 0.2,
+                          probit        = FALSE,
+                          temporal      = FALSE,
+                          groups        = NULL,
+                          time_periods  = NULL){
 
   # NOTE : SAR Reduced Form:
   # y = (I - rho*W)^(-1) * (XB + e)
@@ -89,7 +108,7 @@ sp_sim <- function(sample_size   = 100,
 
 
   # Return relevant simulation data and parameters
-  dat = as.data.frame(cbind(dat, y))
+  dat = as_tibble(cbind(dat, y))
   colnames(dat) = c(xnames, "y")
 
   if(temporal){
