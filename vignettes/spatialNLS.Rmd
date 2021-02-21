@@ -134,6 +134,21 @@ While the bias evaluation indicates the models perform equally well in detecting
 
 ```{r}
 
+# Ideally 2000+ but want this code to actually run for testing purposes
+# data_big <- sp_sim(sample_size  = 400,
+#                    k            = length(b_true)-1,
+#                    b_true       = b_true,
+#                    rho_true     = 0.5,
+#                    prob_connect = 0.7,
+#                    e_sd         = 0.2)
+# 
+# data_sml <- sp_sim(sample_size  = 100,
+#                    k            = length(b_true)-1,
+#                    b_true       = b_true,
+#                    rho_true     = 0.5,
+#                    prob_connect = 0.7,
+#                    e_sd         = 0.2)
+
 mbm_sml <- microbenchmark("SpatialReg" = {lagsarlm( formula = form, data = x$data, listw=x$W_list, quiet=T)},
                           "SpatialNLS" = {lagsarnls(formula = form, data = x$data, W = x$W_matrix)})
 

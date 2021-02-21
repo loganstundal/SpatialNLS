@@ -111,10 +111,8 @@ lagsarnls <- function(formula    = NULL,
 
 
   # ----------------------------------- #
-  # Build NLS model formula ---------------- This could be made a standalone function in the package for generic flexibility (i.e., non-spatial users)
-  el_sp = paste(sprintf("rho^%s*SpLag%s", 1:lags, 1:lags), collapse = " + ")
-  el_fn = paste(sprintf("b_%s * %s",covariates, covariates), collapse = " + ")
-  nls_form = as.formula(sprintf("%s ~ %s + %s", y_name, el_fn, el_sp))
+  # Build NLS model formula
+  nls_form = build_nls_formula(lags, covariates, y_name)
   # ----------------------------------- #
 
 
