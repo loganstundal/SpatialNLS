@@ -1,0 +1,19 @@
+Package: SpatialNLS
+Title: Spatial lag and spatial error models via NLS
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Logan",
+           family = "Stundal",
+           role = c("aut", "cre"),
+           email = "logan.stundal@gmail.com",
+           comment = c(ORCID = "0000-0003-0444-4154"))
+Description: This package provides users with the flexibility to estimate 
+  spatial lag and spatial error models via non-linear least squares. Relative
+  to maximum likelihood and Bayesian spatial modeling techniques, this provides
+  a significant performance gain with relatively little bias tradeoff for most
+  use cases.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1

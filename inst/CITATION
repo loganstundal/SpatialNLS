@@ -1,0 +1,16 @@
+citHeader("To cite SpatialNLS in publications use:")
+
+citEntry(
+  entry    = "Software",
+  title    = ,
+  author   = Stundal, Logan,
+  journal  = ,
+  year     = ,
+  volume   = ,
+  number   = ,
+  pages    = ,
+  url      = ,
+  textVersion = paste(
+
+  )
+)
