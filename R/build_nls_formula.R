@@ -7,6 +7,10 @@
 build_nls_formula <- function(lags, covariates, y_name,
                            model = NULL){
 
+  # Can include a "temporal approximation" of the lag process here in the
+  # future.
+
+
   # Buld spatial approximation
   f_sp = paste(sprintf("rho^%s*SpLag%s", 1:lags, 1:lags), collapse = " + ")
 
