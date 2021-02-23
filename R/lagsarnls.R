@@ -128,14 +128,16 @@ lagsarnls <- function(formula    = NULL,
   if(is.null(rho_bounds)){
     m = nls(formula = nls_form,
             start   = bstart,
-            data    = dat)
+            data    = dat,
+            model   = TRUE)
   } else{
     m = nls(formula   = nls_form,
             start     = bstart,
             algorithm = "port",
             lower     = c(rep(-Inf,length(covariates)), rho_bounds[1]),
             upper     = c(rep(Inf,length(covariates)),  rho_bounds[2]),
-            data      = dat)
+            data      = dat,
+            model     = TRUE)
   }
   # ----------------------------------- #
 
