@@ -28,7 +28,7 @@
 #' @importFrom magic adiag
 #' @importFrom spdep mat2listw listw2mat
 #' @importFrom magrittr "%>%"
-#' @importFrom dplyr mutate group_by ungroup lag
+#' @importFrom dplyr mutate group_by ungroup lag bind_cols
 #' @importFrom tidyr drop_na
 #'
 #' @return Returns a list containing a dataframe with simulated spatiotemporal
@@ -57,6 +57,22 @@ spacetime_sim2 <- function(rho_true = 0.3,
                            unit_betas   = NULL,
                            time_betas   = NULL,
                            prob_connect = 0.3){
+
+  #-----------------------------------------------------------------------------#
+  # NOTES                                                                   ----
+  #-----------------------------------------------------------------------------#
+  # To dos:
+  #
+  # 1. add "newdata" parameter. Thoughts: can run spactime_sim2 once saving
+  #    spatially depdent y and associated W.
+  #    - can then use this spatially dependent y (AND W) in a second run of
+  #      spacetime_sim2 using the same W and y_orig to generate a new new y
+  #      which is both spatially dynamic and depends on an exogenous spatially
+  #      dependent "x" (y_orig)
+  # 2. add a set.seed option
+  #-----------------------------------------------------------------------------#
+
+
   #-----------------------------------------------------------------------------#
   # SETUP                                                                   ----
   #-----------------------------------------------------------------------------#
@@ -185,6 +201,7 @@ spacetime_sim2 <- function(rho_true = 0.3,
     form   <- ~ x1 + x2
     mod_df <- model.frame(formula = form, data = X)
     X      <- model.matrix(object = form, data = mod_df)
+    all_bs <- c(b_true)
   }
 
 
