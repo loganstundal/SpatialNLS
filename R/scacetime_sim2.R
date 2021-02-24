@@ -56,6 +56,9 @@ spacetime_sim2 <- function(rho_true = 0.3,
                            time_effects = T,
                            unit_betas   = NULL,
                            time_betas   = NULL,
+                           simulate_w   = TRUE,
+                           seed         = 123,
+                           nneigh       = 3,
                            prob_connect = 0.3){
 
   #-----------------------------------------------------------------------------#
@@ -98,25 +101,39 @@ spacetime_sim2 <- function(rho_true = 0.3,
   #-----------------------------------------------------------------------------#
   # CREATE W                                                                ----
   #-----------------------------------------------------------------------------#
-  W  = matrix(data = rbinom(n    = panel_units,
-                            size = 1,
-                            prob = prob_connect),
-              nrow = panel_units,
-              ncol = panel_units)
+  if(!simulate_w){
+    W  = matrix(data = rbinom(n    = panel_units,
+                              size = 1,
+                              prob = prob_connect),
+                nrow = panel_units,
+                ncol = panel_units)
 
-  # Clean-up W and row-standardize
-  diag(W) = 0
-  W[lower.tri(W)] <- t(W)[lower.tri(W)]
+    # Clean-up W and row-standardize
+    diag(W) = 0
+    W[lower.tri(W)] <- t(W)[lower.tri(W)]
 
-  # Record actual simulated connections:
-  prob_connect_actual = as.numeric(prop.table(table(W))[2])
+    # Record actual simulated connections:
+    prob_connect_actual = as.numeric(prop.table(table(W))[2])
 
-  # W <- adiag(W, time_periods)
-  W <- do.call(adiag, replicate(panel_times, W, simplify = FALSE))
+    # W <- adiag(W, time_periods)
+    W <- do.call(adiag, replicate(panel_times, W, simplify = FALSE))
 
-  # Create spdep weigh objects
-  nbl = suppressWarnings({spdep::mat2listw(x = W, style = "W")})
-  W   = spdep::listw2mat(nbl)
+    # Create spdep weigh objects
+    nbl = suppressWarnings({spdep::mat2listw(x = W, style = "W")})
+    W   = spdep::listw2mat(nbl)
+
+  } else{
+    W = simulate_W(n      = panel_units,
+                   nneigh = nneigh,
+                   seed   = seed)
+
+    W = as.matrix(W)
+    W <- do.call(adiag, replicate(panel_times, W, simplify = FALSE))
+
+    # Create spdep weigh objects
+    nbl = suppressWarnings({spdep::mat2listw(x = W, style = "W")})
+    W   = spdep::listw2mat(nbl)
+  }
   #-----------------------------------------------------------------------------#
 
 
@@ -270,8 +287,8 @@ spacetime_sim2 <- function(rho_true = 0.3,
     "time_betas"   = time_betas,
 
     # W Connection density
-    "prob_connect"     = prob_connect,
-    "prob_connect_sim" = prob_connect_actual)
+    "prob_connect"     = ifelse(!simulate_w, prob_connect, NA),
+    "prob_connect_sim" = ifelse(!simulate_w, prob_connect_actual, NA))
 
 
   rt = list("data"     = d,
