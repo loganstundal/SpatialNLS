@@ -18,6 +18,9 @@ spacetime_sim2(
   time_effects = T,
   unit_betas = NULL,
   time_betas = NULL,
+  simulate_w = TRUE,
+  seed = 123,
+  nneigh = 3,
   prob_connect = 0.3
 )
 }
