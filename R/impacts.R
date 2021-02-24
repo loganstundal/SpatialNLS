@@ -76,7 +76,7 @@ impacts <- function(model,
   n  <- nrow(W)
   Id <- diag(1, n, n)
 
-  if(n > length(unique(groups))){
+  if(!is.null(lag_dv) & (n > length(unique(groups)))){
     stop(paste0("W > groups. LRSS relies on ONE cross-section for impact estimation.\n",
                 "Please supply a W-matrix where nrow(W) == one cross-section in your data."))
   }
