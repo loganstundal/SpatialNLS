@@ -193,28 +193,28 @@ spacetime_sim2 <- function(rho_true = 0.3,
 
 
   if(unit_effects & !time_effects){
-    print("ONLY UNITS")
+    cat("Simulating data with unit effects.")
     form   <- ~ x1 + x2 + Group
     mod_df <- model.frame(formula = form, data = X)
     X      <- model.matrix(object = form, data = mod_df)
     all_bs <- c(b_true, unit_betas)
 
   } else if(time_effects & !unit_effects){
-    print("ONLY TIME")
+    cat("Simulating data with time effects.")
     form   <- ~ x1 + x2 + Time
     mod_df <- model.frame(formula = form, data = X)
     X      <- model.matrix(object = form, data = mod_df)
     all_bs <- c(b_true, time_betas)
 
   } else if(unit_effects & time_effects){
-    print("UNITS AND TIME")
+    cat("Simulating data with unit and time effects.")
     form   <- ~ x1 + x2 + Group + Time
     mod_df <- model.frame(formula = form, data = X)
     X      <- model.matrix(object = form, data = mod_df)
     all_bs <- c(b_true, unit_betas, time_betas)
 
   } else{
-    print("NEITHER UNITS NOR TIME")
+    cat("Simulating data with neither unit nor time effects.")
     form   <- ~ x1 + x2
     mod_df <- model.frame(formula = form, data = X)
     X      <- model.matrix(object = form, data = mod_df)
