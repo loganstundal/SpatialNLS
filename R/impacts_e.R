@@ -1,13 +1,3 @@
-
-
-
-library(dplyr)       # mutate relocate bind_rows
-library(magrittr)    # `%>%`
-library(stringr)     # str_detect
-library(MASS)        # mvrnorm
-library(spatialreg)
-library(coda)        # as.mcmc HPDinterval
-library(tibble)      # rownames_to_column
 #' Estimate spatial (marginal) effects
 #'
 #' @description impacts_e uses parametric simulation to estimate spatial effects
@@ -33,6 +23,13 @@ library(tibble)      # rownames_to_column
 #'  selected variable subsets from a spatial lag model.
 #' @export
 #'
+#' @importFrom dplyr mutate relocate bind_rows select
+#' @importFrom magrittr "%>%"
+#' @importFrom stringr str_detect
+#' @importFrom MASS mvrnorm
+#' @importFrom coda as.mcmc HPDinterval
+#' @importFrom tibble rownames_to_column
+#'
 #' @examples
 #' x <- spacetime_sim2(phi_true = 0)
 #' d <- x$data
@@ -54,6 +51,7 @@ impacts_e <- function(model,
                       ignore_params = NULL){
 
   if(!is.null(params)){
+    params <- paste(params, collapse = "|")
     params <- coef(model)[str_detect(names(coef(model)), params)]
   } else{
     if(!is.null(ignore_params)){
@@ -93,7 +91,7 @@ impacts_e <- function(model,
     sim_betas <- param_sim[!str_detect(names(param_sim), "rho")]
 
     # Calculate effects
-    direct   <- as.numeric((sim_betas * sum(1 / (1 - sim_rho * e))) / nobs)
+    direct   <- as.numeric((sim_betas * sum(1 / (1 - sim_rho * eigen_vals))) / nobs)
     total    <- sim_betas/(1-sim_rho)
     indirect <- total - direct
 
