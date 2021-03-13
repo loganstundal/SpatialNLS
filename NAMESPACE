@@ -2,6 +2,7 @@
 
 export(impacts)
 export(impacts_ci)
+export(impacts_e)
 export(lagsarnls)
 export(spacetime_sim)
 export(spacetime_sim2)

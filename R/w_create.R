@@ -140,12 +140,10 @@ w_create <- function(formula,                 # A formula class object to extact
                                     expr     = nbw,
                                     simplify = FALSE))
 
-
     if(nb_list){
       if(!silent){cat("Working on panel list...\n")}
       nbl <- spdep::mat2listw(nbw, style = "W")
     }
-
   }
   # ----------------------------------- #
 
@@ -156,7 +154,6 @@ w_create <- function(formula,                 # A formula class object to extact
   # Convert matrices to sparse matrices to reduce file size and increase
   # computation speed during modeling
   nbw <- as(nbw, "sparseMatrix")
-
 
   # Assign column name ID's to spatial weights
   colnames(nbw) <- rownames(nbw)
