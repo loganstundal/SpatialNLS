@@ -37,9 +37,21 @@ lagsarnls <- function(formula    = NULL,
   # ----------------------------------- #
   # Helper functions
 
+  # NB - 20210406 - this is element-wise: need matrix power. Correction added
+  # see LeSage 2008
+    # sp_lag <- function(lags,W, y, X){
+    #   l<-lapply(1:lags, function(x){
+    #     as.numeric(W^x %*% y)
+    #   })
+    #   l <- do.call(cbind, lapply(l, as.data.frame))
+    #   colnames(l) <- paste("SpLag",1:lags, sep ="")
+    #
+    #   return(cbind(X,l))
+    # }
+
   sp_lag <- function(lags,W, y, X){
     l<-lapply(1:lags, function(x){
-      as.numeric(W^x %*% y)
+      as.numeric(Reduce('%*%', replicate(x, W, simplify = F)) %*% y)
     })
     l <- do.call(cbind, lapply(l, as.data.frame))
     colnames(l) <- paste("SpLag",1:lags, sep ="")
